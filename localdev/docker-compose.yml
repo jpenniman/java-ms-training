@@ -1,0 +1,34 @@
+version: '3'
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: training-mysql
+    hostname: training-mysql
+    ports:
+      - 127.0.0.1:3306:3306 #listener
+    environment: 
+      - MYSQL_ROOT_PASSWORD=password
+  rabbitmq:
+    image: rabbitmq:3.8-management
+    container_name: training-mq
+    hostname: training-mq
+    ports:
+      - 127.0.0.1:5672:5672 # listener
+      - 127.0.0.1:15672:15672 # management portal
+    environment: 
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=password
+  splunk:
+    image: splunk/splunk
+    container_name: training-splunk
+    hostname: training-splunk
+    ports:
+      - 127.0.0.1:8000:8000 # portal
+      - 127.0.0.1:8088:8088 # http collector (HEC) 
+      - 127.0.0.1:8125:8125/udp # statsd collector
+    environment:
+      - SPLUNK_HEC_TOKEN=abcd1234
+      - SPLUNK_PASSWORD=password
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_LICENSE_URI=Free
+      - SPLUNK_ADD=udp 8125
