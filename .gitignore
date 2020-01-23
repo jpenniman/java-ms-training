@@ -1,5 +1,6 @@
 .gradle
-/build/
+build/
+bin/
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -10,5 +11,15 @@ gradle-app.setting
 # Cache of project
 .gradletasknamecache
 
+# IntelliJ
 # # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
-# gradle/wrapper/gradle-wrapper.properties
+gradle/wrapper/gradle-wrapper.properties
+.idea
+
+#vscode
+.vscode
+.classpath
+.project
+.settings
+
+out/
