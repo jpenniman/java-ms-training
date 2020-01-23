@@ -1,8 +1,6 @@
 package com.northwind.splunk;
 
-public class SplunkClient {
+public interface SplunkClient {
 
-    public SplunkResponse send(SplunkRequest request) {
-        return null;
-    }
+    SplunkResponse send(SplunkRequest request);
 }
