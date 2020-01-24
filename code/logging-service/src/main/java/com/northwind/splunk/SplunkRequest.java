@@ -1,6 +1,12 @@
 package com.northwind.splunk;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+@JsonSerialize
 public class SplunkRequest {
+
+    @JsonProperty
     private Object event;
 
     // Event is required. It's best practice to require required fields be

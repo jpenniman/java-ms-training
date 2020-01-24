@@ -11,7 +11,7 @@ public class When_sending_to_splunk {
         SplunkClient client = new SplunkClientImpl();
         //SplunkClient client = new SplunkClientMock();
 
-        SplunkRequest request = new SplunkRequest("test");
+        SplunkRequest request = new SplunkRequest("jpenniman");
 
         SplunkResponse response = client.send(request);
 
