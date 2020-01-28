@@ -4,6 +4,8 @@ import com.northwind.loggingservice.providers.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 public class When_using_the_SplunkLoggingProvider {
 
     @Test
@@ -35,6 +37,11 @@ public class When_using_the_SplunkLoggingProvider {
                 @Override
                 public SplunkResponse send(SplunkRequest request) {
                     throw new RuntimeException("test");
+                }
+
+                @Override
+                public SplunkResponse send(List<SplunkRequest> request) {
+                    return null;
                 }
             };
 

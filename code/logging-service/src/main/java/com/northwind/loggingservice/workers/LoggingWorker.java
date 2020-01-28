@@ -11,6 +11,8 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Delivery;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,6 +33,8 @@ public class LoggingWorker implements Runnable {
     private LoggingServiceConfig serviceConfig;
     private QueueConfig queueConfig;
 
+    private Logger internalLogger;
+
     public LoggingWorker(LoggingProvider loggingProvider,
                          LoggingServiceConfig serviceConfig,
                          QueueConfig queueConfig) {
@@ -40,6 +44,7 @@ public class LoggingWorker implements Runnable {
 
         this.bufferSize = serviceConfig.getBufferSize();
 
+        internalLogger = LoggerFactory.getLogger(LoggingWorker.class);
         objectMapper = new ObjectMapper();
 
         ConnectionFactory factory = new ConnectionFactory();
@@ -53,7 +58,7 @@ public class LoggingWorker implements Runnable {
             channel.basicQos(bufferSize);
 
         } catch (IOException | TimeoutException e) {
-            e.printStackTrace();
+            internalLogger.debug("Error creating connection to rabbitmq", e);
         }
     }
 
@@ -66,9 +71,8 @@ public class LoggingWorker implements Runnable {
 
         try {
             channel.basicConsume(queueConfig.getQueuename(), false, this::processMessage, consumerTag -> { });
-
         } catch (IOException e) {
-            e.printStackTrace();
+            internalLogger.debug("Error sending starting consumer", e);
         }
     }
 
@@ -86,25 +90,27 @@ public class LoggingWorker implements Runnable {
             try {
                 return objectMapper.readValue(json, LoggingEvent.class);
             } catch (JsonProcessingException e) {
-                e.printStackTrace();
+                internalLogger.debug("Error deserializing message", e);
                 return null;
             }
         }).collect(Collectors.toList());
 
         long deliveryTag = batch.get(batch.size() -1).getEnvelope().getDeliveryTag();
+
         try {
             loggingProvider.sendEvent(events);
 
             try {
                 channel.basicAck(deliveryTag, true);
             } catch (IOException e) {
-                e.printStackTrace();
+                internalLogger.debug("Error sending ACK", e);
             }
         } catch (LoggingProviderException ex) {
+            internalLogger.debug("Error sending to logging provider", ex);
             try {
                 channel.basicNack(deliveryTag, true, true);
             } catch (IOException e) {
-                e.printStackTrace();
+                internalLogger.debug("Error sending NACK", e);
             }
         }
     }
