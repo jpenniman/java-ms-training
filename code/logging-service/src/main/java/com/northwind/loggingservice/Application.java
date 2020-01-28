@@ -4,7 +4,7 @@ import com.northwind.loggingservice.providers.LoggingProvider;
 import com.northwind.loggingservice.providers.SplunkLoggingProvider;
 import com.northwind.splunk.SplunkClient;
 import com.northwind.splunk.SplunkClientImpl;
-import com.northwind.workers.LoggingWorker;
+import com.northwind.loggingservice.workers.LoggingWorker;
 
 public class Application {
 

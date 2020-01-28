@@ -42,14 +42,13 @@ public class SplunkClientImpl implements SplunkClient {
 
         StringBuilder sb = new StringBuilder();
 
-        for(SplunkRequest req : request) {
+        request.stream().forEach(req->{
             try {
                 String json = objectMapper.writeValueAsString(req);
                 sb.append(json);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
-            }
-        }
+            }});
 
         HttpEntity<String> httpEntity = new HttpEntity<>(sb.toString(), headers);
 

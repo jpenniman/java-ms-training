@@ -1,20 +1,22 @@
-package com.northwind.workers;
+package com.northwind.loggingservice.workers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.northwind.loggingservice.providers.LoggingEvent;
 import com.northwind.loggingservice.providers.LoggingProvider;
 import com.northwind.loggingservice.providers.LoggingProviderException;
-import com.rabbitmq.client.*;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Delivery;
+import io.reactivex.subjects.PublishSubject;
+import io.reactivex.subjects.Subject;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 public class LoggingWorker implements Runnable {
 
@@ -22,16 +24,14 @@ public class LoggingWorker implements Runnable {
     private Connection cn;
     private Channel channel;
     private ObjectMapper objectMapper;
-    private BlockingQueue<Delivery> queue;
-    Timer flushTimer;
+
+    private Subject<Delivery> messages;
 
     private int bufferSize = 5;
 
     public LoggingWorker(LoggingProvider loggingProvider) {
         this.loggingProvider = loggingProvider;
         objectMapper = new ObjectMapper();
-
-        queue = new ArrayBlockingQueue<>(bufferSize);
 
         ConnectionFactory factory = new ConnectionFactory();
         factory.setUsername("admin");
@@ -43,24 +43,18 @@ public class LoggingWorker implements Runnable {
             channel = cn.createChannel();
             channel.basicQos(bufferSize);
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
+        } catch (IOException | TimeoutException e) {
             e.printStackTrace();
         }
-
-        TimerTask flushBufferTask = new TimerTask() {
-            public void run() {
-                if (!queue.isEmpty())
-                    sendBatch();
-            }
-        };
-        flushTimer = new Timer();
-        flushTimer.scheduleAtFixedRate(flushBufferTask, 0, 10000);
     }
 
     @Override
     public void run() {
+        messages = PublishSubject.create();
+
+        messages.buffer(10, TimeUnit.SECONDS, bufferSize)
+                .subscribe(this::sendBatch);
+
         try {
             channel.basicConsume("logging-service", false, this::processMessage, consumerTag -> { });
 
@@ -70,30 +64,23 @@ public class LoggingWorker implements Runnable {
     }
 
     private void processMessage(String consumerTag, Delivery delivery) {
-        while (!queue.offer(delivery)) {
-            sendBatch();
-        }
+        messages.onNext(delivery);
     }
 
-    private void sendBatch() {
-        List<Delivery> batch = new ArrayList<>();
-        queue.drainTo(batch);
+    private void sendBatch(List<Delivery> batch) {
 
-        List<LoggingEvent> events = new ArrayList<>();
+        if (batch.size() == 0)
+            return;
 
-        for(Delivery delivery : batch) {
+        List<LoggingEvent> events = batch.stream().map(delivery->{
             String json = new String(delivery.getBody());
-
-            LoggingEvent event = null;
             try {
-                event = objectMapper.readValue(json, LoggingEvent.class);
+                return objectMapper.readValue(json, LoggingEvent.class);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
+                return null;
             }
-            if (event != null) {
-                events.add(event);
-            }
-        }
+        }).collect(Collectors.toList());
 
         long deliveryTag = batch.get(batch.size() -1).getEnvelope().getDeliveryTag();
         try {
