@@ -28,15 +28,24 @@ public class LoggingWorker implements Runnable {
     private Subject<Delivery> messages;
 
     private int bufferSize = 5;
+    private LoggingServiceConfig serviceConfig;
+    private QueueConfig queueConfig;
 
-    public LoggingWorker(LoggingProvider loggingProvider) {
+    public LoggingWorker(LoggingProvider loggingProvider,
+                         LoggingServiceConfig serviceConfig,
+                         QueueConfig queueConfig) {
         this.loggingProvider = loggingProvider;
+        this.serviceConfig = serviceConfig;
+        this.queueConfig = queueConfig;
+
+        this.bufferSize = serviceConfig.getBufferSize();
+
         objectMapper = new ObjectMapper();
 
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setUsername("admin");
-        factory.setPassword("password");
-        factory.setHost("localhost");
+        factory.setUsername(queueConfig.getUsername());
+        factory.setPassword(queueConfig.getPassword());
+        factory.setHost(queueConfig.getServer());
 
         try {
             cn = factory.newConnection();
@@ -52,11 +61,11 @@ public class LoggingWorker implements Runnable {
     public void run() {
         messages = PublishSubject.create();
 
-        messages.buffer(10, TimeUnit.SECONDS, bufferSize)
+        messages.buffer(serviceConfig.getFlushIntervalInSeconds(), TimeUnit.SECONDS, bufferSize)
                 .subscribe(this::sendBatch);
 
         try {
-            channel.basicConsume("logging-service", false, this::processMessage, consumerTag -> { });
+            channel.basicConsume(queueConfig.getQueuename(), false, this::processMessage, consumerTag -> { });
 
         } catch (IOException e) {
             e.printStackTrace();

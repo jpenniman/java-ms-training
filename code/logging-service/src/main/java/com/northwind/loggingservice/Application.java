@@ -6,12 +6,23 @@ import com.northwind.splunk.SplunkClient;
 import com.northwind.splunk.SplunkClientImpl;
 import com.northwind.loggingservice.workers.LoggingWorker;
 
+import java.io.IOException;
+
 public class Application {
 
     public static void main(String[] args) {
-        SplunkClient splunkClient = new SplunkClientImpl();
+        AppConfig config = new AppConfig();
+        try {
+            config.load();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        SplunkClient splunkClient = new SplunkClientImpl(config.getSplunkConfig());
         LoggingProvider provider = new SplunkLoggingProvider(splunkClient);
-        LoggingWorker worker = new LoggingWorker(provider);
+        LoggingWorker worker = new LoggingWorker(provider,
+                                                 config.getServiceConfig(),
+                                                 config.getQueueConfig());
 
         Thread workerThread = new Thread(worker);
         workerThread.start();

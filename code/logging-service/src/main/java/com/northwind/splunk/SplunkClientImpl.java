@@ -16,13 +16,14 @@ public class SplunkClientImpl implements SplunkClient {
             RestTemplateFactory.INSTANCE;
 
     private HttpHeaders headers;
-
     private ObjectMapper objectMapper;
+    private SplunkConfig config;
 
-    public SplunkClientImpl() {
+    public SplunkClientImpl(SplunkConfig config) {
+        this.config = config;
         objectMapper = new ObjectMapper();
         headers = new HttpHeaders();
-        headers.add("Authorization", "Splunk abcd1234");
+        headers.add("Authorization", String.format("Splunk %s", config.getToken()));
         headers.setContentType(MediaType.APPLICATION_JSON);
     }
 
@@ -32,7 +33,7 @@ public class SplunkClientImpl implements SplunkClient {
 
         HttpEntity<SplunkRequest> httpEntity = new HttpEntity<>(request, headers);
 
-        String url = "https://localhost:8088/services/collector/event";
+        String url = String.format("%s/services/collector/event", config.getServer());
         return client.postForObject(url, httpEntity, SplunkResponse.class);
     }
 
