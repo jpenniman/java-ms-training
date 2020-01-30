@@ -1,0 +1,20 @@
+plugins {
+    id 'java'
+}
+
+group 'com.northwind'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.5.2'
+}
+
+test {
+    useJUnitPlatform()
+}
