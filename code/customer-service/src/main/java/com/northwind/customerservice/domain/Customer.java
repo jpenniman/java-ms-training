@@ -114,6 +114,20 @@ public class Customer {
         this.fax = cleanFax;
     }
 
+    public long getVersion() {
+        return version;
+    }
+
+    public void setVersion(long version) {
+        if (version == 0)
+            throw new IllegalArgumentException("Version cannot be zero.");
+
+        if (version < this.version)
+            throw new IllegalArgumentException("Version cannot be older than the current version.");
+
+        this.version = version;
+    }
+
     public void generateCustomerNo() {
         if (customerNo != null)
             throw new UnsupportedOperationException("CustomerNo has already been generated");
