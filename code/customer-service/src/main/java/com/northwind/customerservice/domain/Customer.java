@@ -1,6 +1,9 @@
 package com.northwind.customerservice.domain;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.List;
 
 public class Customer {
 
@@ -12,6 +15,7 @@ public class Customer {
     private String phone;
     private String fax;
     private long version;
+    private List<Address> addresses = new ArrayList<>();
 
     public Customer(String companyName) {
         setCompanyName(companyName);
@@ -126,6 +130,18 @@ public class Customer {
             throw new IllegalArgumentException("Version cannot be older than the current version.");
 
         this.version = version;
+    }
+
+    public List<Address> getAddresses() {
+        return Collections.unmodifiableList(addresses);
+    }
+
+    public void addAddress(Address address) {
+        addresses.add(address);
+    }
+
+    public void addAddress(String streetOrPoBox, String postalCode) {
+        addAddress(new Address(streetOrPoBox, postalCode));
     }
 
     public void generateCustomerNo() {
