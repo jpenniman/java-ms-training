@@ -3,6 +3,9 @@ package com.northwind.customerservice.api;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @JsonSerialize
 class CustomerModel {
     @JsonProperty
@@ -21,6 +24,8 @@ class CustomerModel {
     private String fax;
     @JsonProperty
     private long version;
+    @JsonProperty
+    private List<Link> links = new ArrayList<>();
 
     public long getId() {
         return id;
@@ -84,5 +89,13 @@ class CustomerModel {
 
     public void setVersion(long version) {
         this.version = version;
+    }
+
+    public List<Link> getLinks() {
+        return links;
+    }
+
+    public void setLinks(List<Link> links) {
+        this.links = links;
     }
 }

@@ -1,5 +1,6 @@
 package com.northwind.customerservice.services;
 
+import com.northwind.customerservice.domain.Address;
 import com.northwind.customerservice.domain.Customer;
 import com.northwind.customerservice.repositories.CustomerRepository;
 
@@ -37,7 +38,12 @@ public class CustomerService {
         Customer savedCustomer = repository.save(customer);
         if (savedCustomer.getCustomerNo() == null) {
             savedCustomer.generateCustomerNo();
+            return repository.save(savedCustomer);
         }
-        return repository.save(savedCustomer);
+        return savedCustomer;
+    }
+
+    public Address addAddress(long customerId, Address address) {
+        return repository.addAddress(customerId, address);
     }
 }

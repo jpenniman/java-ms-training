@@ -1,5 +1,6 @@
 package com.northwind.customerservice.repositories.impl;
 
+import com.northwind.customerservice.domain.Address;
 import com.northwind.customerservice.domain.Customer;
 import com.northwind.customerservice.repositories.CustomerRepository;
 
@@ -25,6 +26,11 @@ public class InMemoryCustomerRepository implements CustomerRepository {
                 .filter(c->c.getCustomerNo().equalsIgnoreCase(customerNo))
                 .findFirst()
                 .get();
+    }
+
+    @Override
+    public Address addAddress(long customerId, Address address) {
+        return null;
     }
 
     @Override

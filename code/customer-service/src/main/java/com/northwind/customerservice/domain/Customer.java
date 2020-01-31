@@ -97,7 +97,7 @@ public class Customer {
         if (phone != null) {
             cleanPhone = phone.trim();
         }
-        if (cleanPhone != null && (cleanPhone.length() == 0 || cleanPhone.length() > 24 || !cleanPhone.matches("[0-9,-]+"))) {
+        if (cleanPhone != null && (cleanPhone.length() == 0 || cleanPhone.length() > 24 )) {
             throw new IllegalArgumentException("Phone must be between 1 and 24 characters.");
         }
         this.phone = cleanPhone;
@@ -112,7 +112,7 @@ public class Customer {
         if (fax != null) {
             cleanFax = fax.trim();
         }
-        if (cleanFax != null && (cleanFax.length() == 0 || cleanFax.length() > 24 || !cleanFax.matches("[0-9,-]+"))) {
+        if (cleanFax != null && (cleanFax.length() == 0 || cleanFax.length() > 24 )) {
             throw new IllegalArgumentException("Fax must be between 1 and 24 characters.");
         }
         this.fax = cleanFax;

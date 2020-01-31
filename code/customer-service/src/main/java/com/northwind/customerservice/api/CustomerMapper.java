@@ -16,6 +16,10 @@ class CustomerMapper {
         model.setFax(entity.getFax());
         model.setPhone(entity.getPhone());
         model.setVersion(entity.getVersion());
+
+        Link addressLink = new Link();
+        addressLink.setHref(String.format("/customers/%d/addresses", entity.getId()));
+        model.getLinks().add(addressLink);
         return model;
     }
 

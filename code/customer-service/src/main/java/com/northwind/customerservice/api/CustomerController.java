@@ -23,7 +23,7 @@ public class CustomerController {
 
     // Specifiying required = false and using Optional<T> allows us to use
     // just the path /customers (without parameters) to query using default offset/limit values
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<List<CustomerModel>> get(@RequestParam(required = false) Optional<Integer> offset, @RequestParam(required = false) Optional<Integer> limit) {
         int skip = offset.orElse(0); //default offset to 0 if not specified
         int take = limit.orElse(50); //default limit to 50 if not sepcified
