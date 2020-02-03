@@ -3,7 +3,10 @@ package com.northwind.customerservice.repositories.impl;
 import com.mysql.cj.MysqlConnection;
 import com.northwind.customerservice.domain.Address;
 import com.northwind.customerservice.domain.Customer;
+import com.northwind.customerservice.infrastructure.LoggerFactory;
 import com.northwind.customerservice.repositories.CustomerRepository;
+import org.apache.commons.logging.Log;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -11,12 +14,14 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
+import java.sql.SQLException;
 import java.util.List;
 
 public class MySqlCustomerRepository implements CustomerRepository {
     private DataSource dataSource;
     private CustomerRowMapper customerRowMapper;
     private AddressRowMapper addressRowMapper;
+    private Log log;
 
     private final static String getAddressSql  =
             "SELECT `Addresses`.`AddressID`,\n" +
@@ -35,79 +40,111 @@ public class MySqlCustomerRepository implements CustomerRepository {
 
     public MySqlCustomerRepository(DataSource dataSource,
                                    CustomerRowMapper customerRowMapper,
-                                   AddressRowMapper addressRowMapper) {
+                                   AddressRowMapper addressRowMapper,
+                                   LoggerFactory loggerFactory) {
         this.dataSource = dataSource;
         this.customerRowMapper = customerRowMapper;
         this.addressRowMapper = addressRowMapper;
+        this.log = loggerFactory.getLog(MySqlCustomerRepository.class);
     }
 
     @Override
     public List<Customer> findByCompanyName(String companyName) {
-        NamedParameterJdbcTemplate db = new NamedParameterJdbcTemplate(dataSource);
-        String sql = "SELECT `Customers`.`CustomerID`,\n" +
-                "    `Customers`.`CustomerNo`,\n" +
-                "    `Customers`.`CompanyName`,\n" +
-                "    `Customers`.`ContactName`,\n" +
-                "    `Customers`.`ContactTitle`,\n" +
-                "    `Customers`.`Phone`,\n" +
-                "    `Customers`.`Fax`,\n" +
-                "    `Customers`.`Version`,\n" +
-                "    `Customers`.`ObjectID`\n" +
-                "FROM `customers-db`.`Customers`\n" +
-                "WHERE CompanyName LIKE :companyName";
+        try {
+            NamedParameterJdbcTemplate db = new NamedParameterJdbcTemplate(dataSource);
+            String sql = "SELECT `Customers`.`CustomerID`,\n" +
+                    "    `Customers`.`CustomerNo`,\n" +
+                    "    `Customers`.`CompanyName`,\n" +
+                    "    `Customers`.`ContactName`,\n" +
+                    "    `Customers`.`ContactTitle`,\n" +
+                    "    `Customers`.`Phone`,\n" +
+                    "    `Customers`.`Fax`,\n" +
+                    "    `Customers`.`Version`,\n" +
+                    "    `Customers`.`ObjectID`\n" +
+                    "FROM `customers-db`.`Customers`\n" +
+                    "WHERE CompanyName LIKE :companyName";
 
-        MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("companyName", companyName + "%");
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("companyName", companyName + "%");
 
-        List<Customer> customers = db.query(sql, params, customerRowMapper);
-        return customers;
+            List<Customer> customers = db.query(sql, params, customerRowMapper);
+            return customers;
+        } catch (Exception ex) {
+            log.debug(String.format("Error occurred finding by company name: [%s].", companyName), ex);
+            throw ex;
+        }
     }
 
     @Override
     public Customer getByCustomerNo(String customerNo) {
-        NamedParameterJdbcTemplate db = new NamedParameterJdbcTemplate(dataSource);
-        String sql = "SELECT `Customers`.`CustomerID`,\n" +
-                "    `Customers`.`CustomerNo`,\n" +
-                "    `Customers`.`CompanyName`,\n" +
-                "    `Customers`.`ContactName`,\n" +
-                "    `Customers`.`ContactTitle`,\n" +
-                "    `Customers`.`Phone`,\n" +
-                "    `Customers`.`Fax`,\n" +
-                "    `Customers`.`Version`,\n" +
-                "    `Customers`.`ObjectID`\n" +
-                "FROM `customers-db`.`Customers`\n" +
-                "WHERE CustomerNo = :customerNo";
+        Customer customer = null;
+        try {
+            NamedParameterJdbcTemplate db = new NamedParameterJdbcTemplate(dataSource);
+            String sql = "SELECT `Customers`.`CustomerID`,\n" +
+                    "    `Customers`.`CustomerNo`,\n" +
+                    "    `Customers`.`CompanyName`,\n" +
+                    "    `Customers`.`ContactName`,\n" +
+                    "    `Customers`.`ContactTitle`,\n" +
+                    "    `Customers`.`Phone`,\n" +
+                    "    `Customers`.`Fax`,\n" +
+                    "    `Customers`.`Version`,\n" +
+                    "    `Customers`.`ObjectID`\n" +
+                    "FROM `customers-db`.`Customers`\n" +
+                    "WHERE CustomerNo = :customerNo";
 
-        MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("customerNo", customerNo);
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("customerNo", customerNo);
 
-        Customer customer = db.queryForObject(sql, params, customerRowMapper);
+            customer = db.queryForObject(sql, params, customerRowMapper);
+        } catch (EmptyResultDataAccessException ex) {
+            // If no results are found, an EmptyResultDataAccessException is thrown.
+            // So we don't want to bubble this up, but we will log it.
+            log.debug(String.format("No data found for customer no [%s]", customerNo), ex);
+        } catch (Exception ex) {
+            log.debug(String.format("Error occurred while searching for customer no [%s]", customerNo), ex);
+            throw ex;
+        }
         return customer;
     }
 
     @Override
     public Customer getById(long id) {
-        NamedParameterJdbcTemplate db = new NamedParameterJdbcTemplate(dataSource);
-        String sql = "SELECT `Customers`.`CustomerID`,\n" +
-                "    `Customers`.`CustomerNo`,\n" +
-                "    `Customers`.`CompanyName`,\n" +
-                "    `Customers`.`ContactName`,\n" +
-                "    `Customers`.`ContactTitle`,\n" +
-                "    `Customers`.`Phone`,\n" +
-                "    `Customers`.`Fax`,\n" +
-                "    `Customers`.`Version`,\n" +
-                "    `Customers`.`ObjectID`\n" +
-                "FROM `customers-db`.`Customers`\n" +
-                "WHERE CustomerID = :id";
+        Customer customer = null;
+        NamedParameterJdbcTemplate db = null;
+        MapSqlParameterSource params = null;
+        try {
+            db = new NamedParameterJdbcTemplate(dataSource);
+            String sql = "SELECT `Customers`.`CustomerID`,\n" +
+                    "    `Customers`.`CustomerNo`,\n" +
+                    "    `Customers`.`CompanyName`,\n" +
+                    "    `Customers`.`ContactName`,\n" +
+                    "    `Customers`.`ContactTitle`,\n" +
+                    "    `Customers`.`Phone`,\n" +
+                    "    `Customers`.`Fax`,\n" +
+                    "    `Customers`.`Version`,\n" +
+                    "    `Customers`.`ObjectID`\n" +
+                    "FROM `customers-db`.`Customers`\n" +
+                    "WHERE CustomerID = :id";
 
-        MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("id", id);
+            params = new MapSqlParameterSource()
+                    .addValue("id", id);
 
-        Customer customer = db.queryForObject(sql, params, customerRowMapper);
+            customer = db.queryForObject(sql, params, customerRowMapper);
 
-        if (customer != null) {
-            List<Address> addresses = db.query(getAddressSql, params, addressRowMapper);
-            addresses.stream().forEach(a -> customer.addAddress(a));
+            // Variables used in the closure (lambda) must be final,
+            // so we'll assign our result to a final variable for use in the lambda.
+            final Customer c = customer;
+            if (customer != null) {
+                List<Address> addresses = db.query(getAddressSql, params, addressRowMapper);
+                addresses.stream().forEach(a -> c.addAddress(a));
+            }
+        } catch (EmptyResultDataAccessException ex) {
+            // If no results are found, an EmptyResultDataAccessException is thrown.
+            // So we don't want to bubble this up, but we will log it.
+            log.debug(String.format("No data found for customer id [%s]", id), ex);
+        } catch (Exception ex) {
+            log.debug(String.format("Error occurred while searching for customer id [%s]", id), ex);
+            throw ex;
         }
         return customer;
     }
@@ -188,7 +225,6 @@ public class MySqlCustomerRepository implements CustomerRepository {
     }
 
     @Override
-    @Transactional
     public Address addAddress(long customerId, Address address) {
 
         NamedParameterJdbcTemplate db = new NamedParameterJdbcTemplate(dataSource);

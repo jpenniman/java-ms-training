@@ -1,4 +1,4 @@
-package com.northwind.customerservice;
+package com.northwind.customerservice.infrastructure;
 
 import com.northwind.customerservice.api.ApiError;
 import org.apache.commons.logging.LogFactory;
@@ -25,7 +25,7 @@ public class GlobalErrorHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<ApiError> handleGlobalException(Exception ex, WebRequest request) {
         ApiError error = parseError(ex, request);
         error.setTitle("Server Error");
-        LogFactory.getLog("API").error(error.toString(), ex);
+        LogFactory.getLog("com.northwind.customerservice.api").error(error.toString(), ex);
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -33,7 +33,7 @@ public class GlobalErrorHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<ApiError> handleUnprocessableEntity(IllegalArgumentException ex, WebRequest request) {
         ApiError error = parseError(ex, request);
         error.setTitle("Unable to process entity");
-        LogFactory.getLog("API").debug(error.toString(), ex);
+        LogFactory.getLog("com.northwind.customerservice.api").debug(error.toString(), ex);
         return new ResponseEntity<>(error, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
@@ -42,7 +42,7 @@ public class GlobalErrorHandler extends ResponseEntityExceptionHandler {
         ApiError error = parseError(ex, request);
         error.setTitle("Bad request");
         error.setDetail("The request is invalid. Please refer to the documentation for details on how to construct a valid request for " + error.getSource());
-        LogFactory.getLog("API").debug(error.toString(), ex);
+        LogFactory.getLog("com.northwind.customerservice.api").debug(error.toString(), ex);
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 }

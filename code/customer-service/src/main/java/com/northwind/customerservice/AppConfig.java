@@ -1,5 +1,7 @@
 package com.northwind.customerservice;
 
+import com.northwind.customerservice.infrastructure.LoggerFactory;
+import com.northwind.customerservice.infrastructure.LoggerFactoryImpl;
 import com.northwind.customerservice.repositories.CustomerRepository;
 import com.northwind.customerservice.repositories.impl.AddressRowMapper;
 import com.northwind.customerservice.repositories.impl.CustomerRowMapper;
@@ -38,8 +40,9 @@ public class AppConfig {
     @Bean
     public CustomerRepository customerRepository(DataSource dataSource,
                                                  CustomerRowMapper customerRowMapper,
-                                                 AddressRowMapper addressRowMapper) {
-        return new MySqlCustomerRepository(dataSource, customerRowMapper, addressRowMapper);
+                                                 AddressRowMapper addressRowMapper,
+                                                 LoggerFactory loggerFactory) {
+        return new MySqlCustomerRepository(dataSource, customerRowMapper, addressRowMapper, loggerFactory);
     }
 
     @Bean
@@ -50,5 +53,10 @@ public class AppConfig {
     @Bean
     public AddressRowMapper addressRowMapper() {
         return new AddressRowMapper();
+    }
+
+    @Bean
+    public LoggerFactory loggerFactory() {
+        return new LoggerFactoryImpl();
     }
 }

@@ -1,7 +1,16 @@
 package com.northwind.loggingservice.providers;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import java.util.Date;
 
+@JsonSerialize
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LoggingEvent {
 /*
 {
@@ -14,10 +23,16 @@ public class LoggingEvent {
 }
 */
 
+    @JsonProperty
+    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     private Date timestamp;
+    @JsonProperty
     private LogLevel level;
+    @JsonProperty("thread")
     private String threadName;
+    @JsonProperty("logger")
     private String category;
+    @JsonProperty
     private String message;
 
     public Date getTimestamp() {

@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -32,13 +33,15 @@ public class AddressController {
     @GetMapping("/{id}")
     public ResponseEntity<AddressModel> get(@PathVariable long customerId, @PathVariable long id) {
         Customer customer = service.getById(customerId);
-        AddressModel address =  customer.getAddresses().stream()
+        Optional<AddressModel> address =  customer.getAddresses().stream()
                 .filter(a->a.getId() == id)
                 .map(a->AddressMapper.toModel(a))
-                .findFirst()
-                .get();
+                .findFirst();
 
-        return ResponseEntity.ok().body(address);
+        if (!address.isPresent())
+            return ResponseEntity.notFound().build();
+
+        return ResponseEntity.ok().body(address.get());
     }
 
     @PostMapping

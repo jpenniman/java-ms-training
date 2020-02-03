@@ -23,6 +23,11 @@ class CustomerMapper {
         return model;
     }
 
+    /**
+     * Used for creating new customers
+     * @param model
+     * @return
+     */
     public static Customer toEntity(CustomerModel model) {
         Customer entity = new Customer(model.getCompanyName());
         entity.setId(model.getId());
@@ -35,6 +40,12 @@ class CustomerMapper {
         return entity;
     }
 
+    /**
+     * Used tp merge for updates
+     * @param model
+     * @param entity
+     * @return
+     */
     public static Customer toEntity(CustomerModel model, Customer entity) {
         entity.setCompanyName(model.getCompanyName());
         entity.setContactName(model.getContactName());
@@ -42,6 +53,7 @@ class CustomerMapper {
         entity.setCustomerNo(model.getCustomerNo());
         entity.setFax(model.getFax());
         entity.setPhone(model.getPhone());
+        entity.setVersion(model.getVersion());
         return entity;
     }
 }

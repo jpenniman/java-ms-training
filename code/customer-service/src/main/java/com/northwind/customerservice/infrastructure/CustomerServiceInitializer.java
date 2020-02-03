@@ -1,5 +1,6 @@
-package com.northwind.customerservice;
+package com.northwind.customerservice.infrastructure;
 
+import com.northwind.customerservice.AppConfig;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;

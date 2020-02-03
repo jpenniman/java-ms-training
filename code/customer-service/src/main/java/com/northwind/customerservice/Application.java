@@ -1,6 +1,8 @@
 package com.northwind.customerservice;
 
 import org.apache.catalina.startup.Tomcat;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +34,10 @@ public class Application {
 
         // Start the server and block the current thread till the server exits.
         tomcat.start();
+
+        Log log = LogFactory.getLog(Application.class);
+        log.info("Service started");
+
         tomcat.getServer().await();
     }
 
