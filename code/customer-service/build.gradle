@@ -30,6 +30,8 @@ dependencies {
     implementation 'ch.qos.logback.contrib:logback-json-classic:0.1.5' //Logback JSON Formatter
     implementation 'ch.qos.logback.contrib:logback-jackson:0.1.5' //Jackson implementation of Logback JSON Formatter
 
+    // Metrics
+    implementation 'io.micrometer:micrometer-registry-statsd:1.1.5'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.5.2'
 }
