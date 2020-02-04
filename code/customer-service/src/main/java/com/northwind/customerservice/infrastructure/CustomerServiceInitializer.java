@@ -6,8 +6,10 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRegistration;
+import java.util.EnumSet;
 
 public class CustomerServiceInitializer implements WebApplicationInitializer {
     @Override
@@ -28,5 +30,7 @@ public class CustomerServiceInitializer implements WebApplicationInitializer {
                 .addServlet("dispatcher", new DispatcherServlet(dispatcherContext));
         dispatcher.setLoadOnStartup(1);
         dispatcher.addMapping("/");
+        container.addFilter("MetricsFilter", MetricsFilter.class)
+                    .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
     }
 }

@@ -2,6 +2,7 @@ package com.northwind.customerservice;
 
 import com.northwind.customerservice.infrastructure.LoggerFactory;
 import com.northwind.customerservice.infrastructure.LoggerFactoryImpl;
+import com.northwind.customerservice.infrastructure.TraceContext;
 import com.northwind.customerservice.repositories.CustomerRepository;
 import com.northwind.customerservice.repositories.impl.AddressRowMapper;
 import com.northwind.customerservice.repositories.impl.CustomerRowMapper;
@@ -9,6 +10,7 @@ import com.northwind.customerservice.repositories.impl.InMemoryCustomerRepositor
 import com.northwind.customerservice.repositories.impl.MySqlCustomerRepository;
 import com.northwind.customerservice.services.CustomerService;
 import io.micrometer.core.instrument.Clock;
+import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
@@ -21,7 +23,9 @@ import io.micrometer.statsd.StatsdMeterRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import javax.sql.DataSource;
@@ -52,8 +56,15 @@ public class AppConfig {
     public CustomerRepository customerRepository(DataSource dataSource,
                                                  CustomerRowMapper customerRowMapper,
                                                  AddressRowMapper addressRowMapper,
-                                                 LoggerFactory loggerFactory) {
-        return new MySqlCustomerRepository(dataSource, customerRowMapper, addressRowMapper, loggerFactory);
+                                                 LoggerFactory loggerFactory,
+                                                 MeterRegistry meterRegistry,
+                                                 TraceContext traceContext) {
+        return new MySqlCustomerRepository(dataSource,
+                customerRowMapper,
+                addressRowMapper,
+                loggerFactory,
+                meterRegistry,
+                traceContext);
     }
 
     @Bean
@@ -115,4 +126,21 @@ public class AppConfig {
         new JvmThreadMetrics().bindTo(meterRegistry);
         return meterRegistry;
     }
+
+    @Bean
+    @RequestScope
+    public TraceContext traceContext() {
+        return new TraceContext();
+    }
+
+
 }
+
+
+
+
+
+
+
+
+

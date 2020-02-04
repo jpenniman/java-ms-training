@@ -4,7 +4,10 @@ import com.mysql.cj.MysqlConnection;
 import com.northwind.customerservice.domain.Address;
 import com.northwind.customerservice.domain.Customer;
 import com.northwind.customerservice.infrastructure.LoggerFactory;
+import com.northwind.customerservice.infrastructure.TraceContext;
 import com.northwind.customerservice.repositories.CustomerRepository;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.apache.commons.logging.Log;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -15,13 +18,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
+import java.sql.Time;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class MySqlCustomerRepository implements CustomerRepository {
     private DataSource dataSource;
     private CustomerRowMapper customerRowMapper;
     private AddressRowMapper addressRowMapper;
     private Log log;
+    private MeterRegistry meterRegistry;
+    private TraceContext traceContext;
 
     private final static String getAddressSql  =
             "SELECT `Addresses`.`AddressID`,\n" +
@@ -41,15 +48,20 @@ public class MySqlCustomerRepository implements CustomerRepository {
     public MySqlCustomerRepository(DataSource dataSource,
                                    CustomerRowMapper customerRowMapper,
                                    AddressRowMapper addressRowMapper,
-                                   LoggerFactory loggerFactory) {
+                                   LoggerFactory loggerFactory,
+                                   MeterRegistry meterRegistry,
+                                   TraceContext traceContext) {
         this.dataSource = dataSource;
         this.customerRowMapper = customerRowMapper;
         this.addressRowMapper = addressRowMapper;
         this.log = loggerFactory.getLog(MySqlCustomerRepository.class);
+        this.meterRegistry = meterRegistry;
+        this.traceContext = traceContext;
     }
 
     @Override
     public List<Customer> findByCompanyName(String companyName) {
+        meterRegistry.counter("database.query.findByCompanyName.count").increment();
         try {
             NamedParameterJdbcTemplate db = new NamedParameterJdbcTemplate(dataSource);
             String sql = "SELECT `Customers`.`CustomerID`,\n" +
@@ -67,7 +79,10 @@ public class MySqlCustomerRepository implements CustomerRepository {
             MapSqlParameterSource params = new MapSqlParameterSource()
                     .addValue("companyName", companyName + "%");
 
+            Timer timer = meterRegistry.timer("database.query.findByCompanyName.latency");
+
             List<Customer> customers = db.query(sql, params, customerRowMapper);
+
             return customers;
         } catch (Exception ex) {
             log.debug(String.format("Error occurred finding by company name: [%s].", companyName), ex);
@@ -99,7 +114,7 @@ public class MySqlCustomerRepository implements CustomerRepository {
         } catch (EmptyResultDataAccessException ex) {
             // If no results are found, an EmptyResultDataAccessException is thrown.
             // So we don't want to bubble this up, but we will log it.
-            log.debug(String.format("No data found for customer no [%s]", customerNo), ex);
+            log.debug(String.format("No data found for customer no [%s]. TraceId: %s", customerNo, traceContext.getTraceId()), ex);
         } catch (Exception ex) {
             log.debug(String.format("Error occurred while searching for customer no [%s]", customerNo), ex);
             throw ex;

@@ -1,6 +1,7 @@
 package com.northwind.customerservice.infrastructure;
 
 import com.northwind.customerservice.api.ApiError;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -9,10 +10,17 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @ControllerAdvice
 public class GlobalErrorHandler extends ResponseEntityExceptionHandler {
+
+    MeterRegistry meterRegistry;
+
+    public GlobalErrorHandler(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+    }
 
     private ApiError parseError(Exception ex, WebRequest request) {
         ApiError error = new ApiError();
@@ -26,6 +34,7 @@ public class GlobalErrorHandler extends ResponseEntityExceptionHandler {
         ApiError error = parseError(ex, request);
         error.setTitle("Server Error");
         LogFactory.getLog("com.northwind.customerservice.api").error(error.toString(), ex);
+        meterRegistry.counter("request.failure").increment();
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
