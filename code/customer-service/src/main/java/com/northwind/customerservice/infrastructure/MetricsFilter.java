@@ -27,7 +27,13 @@ public class MetricsFilter implements Filter {
 
         Instant startTime = Instant.now();
         try {
+            // Code here happens on request...
+
+            // call the next filter
             chain.doFilter(request, response);
+
+            //code here happens on response...
+
         } catch (Exception ex) {
             meterRegistry.counter("request.failure").increment();
             throw ex;

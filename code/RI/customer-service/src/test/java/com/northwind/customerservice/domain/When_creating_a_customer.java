@@ -112,7 +112,7 @@ public class When_creating_a_customer {
     private static Stream<String> invalidPhone() {
         return Stream.of("",
                          " ",
-                         //new String(new char[24]).replace("\0", "X"),
+                         new String(new char[24]).replace("\0", "X"),
                          new String(new char[25]).replace("\0", "1"));
     }
 

@@ -2,15 +2,12 @@ package com.northwind.customerservice;
 
 import com.northwind.customerservice.infrastructure.LoggerFactory;
 import com.northwind.customerservice.infrastructure.LoggerFactoryImpl;
-import com.northwind.customerservice.infrastructure.TraceContext;
 import com.northwind.customerservice.repositories.CustomerRepository;
 import com.northwind.customerservice.repositories.impl.AddressRowMapper;
 import com.northwind.customerservice.repositories.impl.CustomerRowMapper;
-import com.northwind.customerservice.repositories.impl.InMemoryCustomerRepository;
 import com.northwind.customerservice.repositories.impl.MySqlCustomerRepository;
 import com.northwind.customerservice.services.CustomerService;
 import io.micrometer.core.instrument.Clock;
-import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
@@ -18,13 +15,10 @@ import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
 import io.micrometer.statsd.StatsdConfig;
-import io.micrometer.statsd.StatsdFlavor;
 import io.micrometer.statsd.StatsdMeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpMethod;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -33,7 +27,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -48,7 +41,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.Duration;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -70,6 +62,9 @@ public class AppConfig extends WebSecurityConfigurerAdapter implements WebMvcCon
         }
     }
 
+    /***********************************************************/
+    /* Security                                                */
+    /***********************************************************/
     // Create 2 users for demo
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -83,24 +78,21 @@ public class AppConfig extends WebSecurityConfigurerAdapter implements WebMvcCon
 
     }
 
-    // Secure the endpoins with HTTP Basic authentication
+    // Secure the endpoints with HTTP Basic authentication
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-
-        http
-                //HTTP Basic authentication
-                .httpBasic()
-                .and()
-                .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "/customers/**").hasRole("USER")
-                .antMatchers(HttpMethod.GET, "/addresses/**").hasRole("USER")
-                .antMatchers(HttpMethod.POST, "/customers").hasRole("ADMIN")
-                .antMatchers(HttpMethod.PUT, "/customers/**").hasRole("ADMIN")
-                .antMatchers(HttpMethod.PATCH, "/customers/**").hasRole("ADMIN")
-                .antMatchers(HttpMethod.DELETE, "/customers/**").hasRole("ADMIN")
-                .and()
-                .csrf().disable()
-                .formLogin().disable();
+        http.httpBasic() //HTTP Basic authentication
+            .and()
+            .authorizeRequests()
+            .antMatchers(HttpMethod.GET, "/customers/**").hasRole("USER")
+            .antMatchers(HttpMethod.GET, "/addresses/**").hasRole("USER")
+            .antMatchers(HttpMethod.POST, "/customers").hasRole("ADMIN")
+            .antMatchers(HttpMethod.PUT, "/customers/**").hasRole("ADMIN")
+            .antMatchers(HttpMethod.PATCH, "/customers/**").hasRole("ADMIN")
+            .antMatchers(HttpMethod.DELETE, "/customers/**").hasRole("ADMIN")
+            .and()
+            .csrf().disable()
+            .formLogin().disable();
     }
 
     @Bean
@@ -108,6 +100,9 @@ public class AppConfig extends WebSecurityConfigurerAdapter implements WebMvcCon
         return new BCryptPasswordEncoder();
     }
 
+    /***********************************************************/
+    /* Swagger                                                 */
+    /***********************************************************/
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
@@ -132,6 +127,9 @@ public class AppConfig extends WebSecurityConfigurerAdapter implements WebMvcCon
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
 
+    /***********************************************************/
+    /* DataSource                                              */
+    /***********************************************************/
     @Bean
     public DataSource datasource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
@@ -142,42 +140,10 @@ public class AppConfig extends WebSecurityConfigurerAdapter implements WebMvcCon
 
         return dataSource;
     }
-    //DI Configuration goes here.
-    @Bean
-    public CustomerService customerService(CustomerRepository customerRepository) {
-        return new CustomerService(customerRepository);
-    }
 
-    @Bean
-    public CustomerRepository customerRepository(DataSource dataSource,
-                                                 CustomerRowMapper customerRowMapper,
-                                                 AddressRowMapper addressRowMapper,
-                                                 LoggerFactory loggerFactory,
-                                                 MeterRegistry meterRegistry,
-                                                 TraceContext traceContext) {
-        return new MySqlCustomerRepository(dataSource,
-                customerRowMapper,
-                addressRowMapper,
-                loggerFactory,
-                meterRegistry,
-                traceContext);
-    }
-
-    @Bean
-    public CustomerRowMapper customerRowMapper() {
-        return new CustomerRowMapper();
-    }
-
-    @Bean
-    public AddressRowMapper addressRowMapper() {
-        return new AddressRowMapper();
-    }
-
-    @Bean
-    public LoggerFactory loggerFactory() {
-        return new LoggerFactoryImpl();
-    }
-
+    /***********************************************************/
+    /* Micrometer (Metrics)                                    */
+    /***********************************************************/
     @Bean
     public MeterRegistry meterRegistry() {
         StatsdConfig statsdConfig = new StatsdConfig() {
@@ -202,13 +168,41 @@ public class AppConfig extends WebSecurityConfigurerAdapter implements WebMvcCon
         return meterRegistry;
     }
 
+    /***********************************************************/
+    /* Application DI Config                                   */
+    /***********************************************************/
     @Bean
-    @RequestScope
-    public TraceContext traceContext() {
-        return new TraceContext();
+    public CustomerService customerService(CustomerRepository customerRepository) {
+        return new CustomerService(customerRepository);
     }
 
+    @Bean
+    public CustomerRepository customerRepository(DataSource dataSource,
+                                                 CustomerRowMapper customerRowMapper,
+                                                 AddressRowMapper addressRowMapper,
+                                                 LoggerFactory loggerFactory,
+                                                 MeterRegistry meterRegistry) {
+        return new MySqlCustomerRepository(dataSource,
+                customerRowMapper,
+                addressRowMapper,
+                loggerFactory,
+                meterRegistry);
+    }
 
+    @Bean
+    public CustomerRowMapper customerRowMapper() {
+        return new CustomerRowMapper();
+    }
+
+    @Bean
+    public AddressRowMapper addressRowMapper() {
+        return new AddressRowMapper();
+    }
+
+    @Bean
+    public LoggerFactory loggerFactory() {
+        return new LoggerFactoryImpl();
+    }
 }
 
 

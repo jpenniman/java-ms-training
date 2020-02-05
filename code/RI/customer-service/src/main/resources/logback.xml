@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <!-- Load properties from application.properties -->
     <property resource="application.properties" />
 
-    <!-- configure our appenders. These define what we can log to. -->
-    <!-- Print to the console. -->
+    <!-- For logging to the console -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
             <Pattern>
@@ -11,7 +11,8 @@
             </Pattern>
         </layout>
     </appender>
-    <!-- send to rabbitmq for our logging service to pick up -->
+
+    <!-- For logging to RabbitMQ -->
     <appender name="AMQP" class="org.springframework.amqp.rabbit.logback.AmqpAppender">
         <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
             <jsonFormatter
@@ -21,25 +22,22 @@
             <!--ISO 8601 timestamp format-->
             <timestampFormat>yyyy-MM-dd'T'HH:mm:ss.SSSZ</timestampFormat>
         </layout>
-        <host>${rabbitmq.server}</host>
+        <host>${rabbitmq.host}</host>
         <username>${rabbitmq.username}</username>
         <password>${rabbitmq.password}</password>
         <exchangeName>logs</exchangeName>
         <verifyHostname>false</verifyHostname>
-        <applicationId>CustomerService</applicationId>
+        <applicationId>customer-service</applicationId>
         <generateId>true</generateId>
         <charset>UTF-8</charset>
+        <durable>false</durable>
     </appender>
 
-    <!-- we can get granular and define error levels and appender usage by logger or
-         group of loggers that start with the value for "name" -->
-    <logger name="com.northwind" level="info" >
+    <logger name="com.northwind" level="${logging.level}" >
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="AMQP" />
     </logger>
 
-    <!-- Root logger. This is required and is used by default if there are no
-         specific loggers defined above -->
     <root level="info">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="AMQP" />

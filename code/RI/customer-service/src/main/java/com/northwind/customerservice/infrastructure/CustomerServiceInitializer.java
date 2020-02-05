@@ -4,7 +4,6 @@ import com.northwind.customerservice.AppConfig;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
 
 import javax.servlet.DispatcherType;
@@ -31,9 +30,7 @@ public class CustomerServiceInitializer implements WebApplicationInitializer {
                 .addServlet("dispatcher", new DispatcherServlet(dispatcherContext));
         dispatcher.setLoadOnStartup(1);
         dispatcher.addMapping("/");
-        container.addFilter("springSecurityFilterChain", DelegatingFilterProxy.class)
-                    .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
         container.addFilter("MetricsFilter", MetricsFilter.class)
-                    .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
+                .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
     }
 }

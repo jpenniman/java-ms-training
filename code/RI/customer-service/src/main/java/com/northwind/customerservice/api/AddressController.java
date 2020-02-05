@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/customers/{customerId}/addresses")
-@Api(tags="Addresses")
+@Api(tags = "Addresses")
 public class AddressController {
 
     private CustomerService service;
