@@ -173,6 +173,21 @@ public class Order {
         return status;
     }
 
+    public void orderShipped(java.util.Date shippedDate, long shippedVia) {
+        if (status == OrderStatus.Cancelled) {
+            throw new IllegalStateException("Cannot ship order. Order has been cancelled.");
+        }
+        this.shippedDate = new Date(shippedDate.getTime());
+        status = OrderStatus.Shipped;
+    }
+
+    public void cancelOrder() {
+        if (status == OrderStatus.Shipped) {
+            throw new IllegalStateException("Cannot cancel order. Order has been shipped.");
+        }
+        status = OrderStatus.Cancelled;
+    }
+
     public List<OrderItem> getItems() {
         return Collections.unmodifiableList(items);
     }

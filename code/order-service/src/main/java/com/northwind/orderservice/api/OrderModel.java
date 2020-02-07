@@ -22,7 +22,8 @@ public class OrderModel {
     private Date orderDate;
     @JsonProperty
     private BigDecimal total;
-
+    @JsonProperty
+    private Date shippedDate;
     @JsonProperty
     private String shipName;
     @JsonProperty
@@ -150,5 +151,13 @@ public class OrderModel {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public Date getShippedDate() {
+        return shippedDate;
+    }
+
+    public void setShippedDate(Date shippedDate) {
+        this.shippedDate = shippedDate;
     }
 }

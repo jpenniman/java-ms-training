@@ -1,10 +1,12 @@
 package com.northwind.orderservice.services;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.northwind.orderservice.adapters.ShippingServiceClient;
 import com.northwind.orderservice.domain.Order;
 import com.northwind.orderservice.repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

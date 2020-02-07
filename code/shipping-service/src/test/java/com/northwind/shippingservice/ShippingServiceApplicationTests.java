@@ -1,12 +1,12 @@
-package com.northwind.orderservice;
+package com.northwind.shippingservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-//@SpringBootTest
-class OrderServiceApplicationTests {
+@SpringBootTest
+class ShippingServiceApplicationTests {
 
-	//@Test
+	@Test
 	void contextLoads() {
 	}
 

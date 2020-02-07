@@ -32,3 +32,9 @@ services:
       - SPLUNK_START_ARGS=--accept-license
       - SPLUNK_LICENSE_URI=Free
       - SPLUNK_ADD=udp 8125
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: training-zipkin
+    hostname: training-zipkin
+    ports:
+      - 127.0.0.1:9411:9411 # portal

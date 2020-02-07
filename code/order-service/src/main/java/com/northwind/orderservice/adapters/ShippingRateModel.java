@@ -1,13 +1,13 @@
 package com.northwind.orderservice.adapters;
 
 public class ShippingRateModel {
-    private double flatRate;
+    private double freight;
 
-    public double getFlatRate() {
-        return flatRate;
+    public double getFreight() {
+        return freight;
     }
 
-    public void setFlatRate(double flatRate) {
-        this.flatRate = flatRate;
+    public void setFreight(double freight) {
+        this.freight = freight;
     }
 }

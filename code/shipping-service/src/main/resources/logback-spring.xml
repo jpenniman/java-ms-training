@@ -24,7 +24,7 @@
         <password>${rabbitmq-password}</password>
         <exchangeName>logs</exchangeName>
         <verifyHostname>false</verifyHostname>
-        <applicationId>customer-service</applicationId>
+        <applicationId>shipping-service</applicationId>
         <generateId>true</generateId>
         <charset>UTF-8</charset>
         <durable>false</durable>

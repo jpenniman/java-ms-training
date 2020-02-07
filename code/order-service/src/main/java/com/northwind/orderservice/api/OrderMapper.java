@@ -20,6 +20,7 @@ public class OrderMapper {
         model.setShipRegion(entity.getShipRegion());
         model.setShipName(entity.getShipName());
         model.setStatus(entity.getStatus());
+        model.setShippedDate(entity.getShippedDate());
         return model;
     }
 
