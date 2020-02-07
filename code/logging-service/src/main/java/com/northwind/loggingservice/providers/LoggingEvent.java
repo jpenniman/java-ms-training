@@ -7,6 +7,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @JsonSerialize
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -34,6 +36,9 @@ public class LoggingEvent {
     private String category;
     @JsonProperty
     private String message;
+    @JsonProperty
+    private Map<String, String> mdc = new HashMap<>();
+
 
     public Date getTimestamp() {
         return timestamp;
@@ -73,5 +78,9 @@ public class LoggingEvent {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public Map<String, String> getMdc() {
+        return mdc;
     }
 }

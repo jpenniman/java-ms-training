@@ -24,7 +24,7 @@ public class OrderItem {
     @Version
     private long version;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "OrderID", updatable = false, insertable = false)
     private Order order;
 

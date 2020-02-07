@@ -1,11 +1,14 @@
 package com.northwind.orderservice.api;
 
+import ch.qos.logback.core.pattern.util.RegularEscapeUtil;
 import com.northwind.orderservice.domain.Order;
 import com.northwind.orderservice.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -39,5 +42,35 @@ public class OrderController {
             return ResponseEntity.notFound().build();
 
         return ResponseEntity.ok(OrderMapper.toModel(order.get()));
+    }
+
+    @PostMapping
+    public ResponseEntity<OrderModel> create(@RequestBody OrderModel model) {
+        Order order = OrderMapper.toNewEntity(model);
+
+        OrderModel savedOrder =
+                OrderMapper.toModel(service.save(order));
+
+        return ResponseEntity.created(URI.create("/orders/" + order.getId()))
+                .body(savedOrder);
+    }
+
+    @PutMapping("/{orderNo}")
+    public ResponseEntity<OrderModel> update(@PathVariable long orderNo, @RequestBody OrderModel model) {
+        Optional<Order> order = service.get(orderNo);
+        if (!(order.isPresent()))
+            return ResponseEntity.notFound().build();
+
+        if (order.get().getVersion() != model.getVersion())
+            return new ResponseEntity<>(OrderMapper.toModel(order.get()), HttpStatus.CONFLICT);
+
+        OrderMapper.merge(model, order.get());
+        return ResponseEntity.ok(OrderMapper.toModel(service.save(order.get())));
+    }
+
+    @DeleteMapping("/{orderNo}")
+    public ResponseEntity delete(@PathVariable long orderNo) {
+        service.delete(orderNo);
+        return ResponseEntity.noContent().build();
     }
 }

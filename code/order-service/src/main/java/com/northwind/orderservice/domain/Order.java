@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 @Entity
 @Table(name = "Orders")
@@ -33,19 +32,29 @@ public class Order {
     @Column(name = "Freight")
     private BigDecimal freight;
 
+    @Column(name = "ShipName", length = 40)
     private String shipName;
+    @Column(name = "ShipAddress", length = 60)
     private String shipAddress;
+    @Column(name = "ShipCity", length = 15)
     private String shipCity;
+    @Column(name = "ShipRegion", length = 15)
     private String shipRegion;
+    @Column(name = "ShipPostalCode", length = 10)
     private String shipPostalCode;
+    @Column(name = "ShipCountry", length = 15)
     private String shipCountry;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.REMOVE, orphanRemoval = true,
+    fetch = FetchType.EAGER)
     private List<OrderItem> items = new ArrayList<>();
 
     @Version
     private long version;
-    private String status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name="Status")
+    private OrderStatus status;
 
     @Column(name = "ObjectID", length = 36)
     private UUID objectId;
@@ -56,7 +65,7 @@ public class Order {
         this.customerId = customerId;
         this.customerNo = customerNo;
         this.companyName = companyName;
-
+        this.status = OrderStatus.Processing;
         this.objectId = UUID.randomUUID();
     }
 
@@ -160,12 +169,8 @@ public class Order {
         return version;
     }
 
-    public String getStatus() {
+    public OrderStatus getStatus() {
         return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 
     public List<OrderItem> getItems() {
