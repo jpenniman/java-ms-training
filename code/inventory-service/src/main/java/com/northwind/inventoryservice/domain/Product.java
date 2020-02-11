@@ -9,7 +9,6 @@ import java.util.UUID;
 @Table(name="Products")
 public class Product {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="ProductID")
     private long id;
     @Column
