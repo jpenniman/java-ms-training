@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- imports the bundled Spring Boot Logback config -->
+    <include resource="org/springframework/boot/logging/logback/base.xml" />
+
+    <!-- Pull in Spring Environment Configuration Properties -->
+    <springProperty scope="context" name="application-id" source="spring.application.name" />
+    <springProperty scope="context" name="rabbitmq-host" source="spring.rabbitmq.host" />
+    <springProperty scope="context" name="rabbitmq-username" source="spring.rabbitmq.username" />
+    <springProperty scope="context" name="rabbitmq-password" source="spring.rabbitmq.password" />
+    <springProperty scope="context" name="logging-level-com-northwind" source="logging.level.com.northwind" />
+
+    <!-- For logging to RabbitMQ -->
+    <appender name="AMQP" class="org.springframework.amqp.rabbit.logback.AmqpAppender">
+        <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
+            <jsonFormatter
+                    class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
+                <prettyPrint>true</prettyPrint>
+            </jsonFormatter>
+            <!--ISO 8601 timestamp format-->
+            <timestampFormat>yyyy-MM-dd'T'HH:mm:ss.SSSZ</timestampFormat>
+        </layout>
+        <host>${rabbitmq-host}</host>
+        <username>${rabbitmq-username}</username>
+        <password>${rabbitmq-password}</password>
+        <exchangeName>logs</exchangeName>
+        <verifyHostname>false</verifyHostname>
+        <applicationId>${application-id}</applicationId>
+        <generateId>true</generateId>
+        <charset>UTF-8</charset>
+        <durable>false</durable>
+    </appender>
+
+    <logger name="com.northwind" level="${logging-level-com-northwind}" >
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="AMQP" />
+    </logger>
+
+    <root level="info">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="AMQP" />
+    </root>
+</configuration>

@@ -1,0 +1,48 @@
+plugins {
+	id 'org.springframework.boot' version '2.2.4.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+	id 'java'
+}
+
+group = 'com.northwind'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	// Data Access
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.2.4.RELEASE'
+	implementation 'mysql:mysql-connector-java:8.0.19'
+
+	// Logging
+	implementation 'org.springframework.amqp:spring-rabbit:2.2.3.RELEASE'
+	implementation 'ch.qos.logback.contrib:logback-json-classic:0.1.5' //Logback JSON Formatter
+	implementation 'ch.qos.logback.contrib:logback-jackson:0.1.5' //Jackson implementation of Logback JSON Formatter
+
+	// Retry
+	// implementation 'org.springframework.retry:spring-retry:1.2.5.RELEASE'
+
+	// Timeouts/Circuit Breakers/BulkHeads
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix:2.2.1.RELEASE'
+
+	// Tracing
+	implementation 'org.springframework.cloud:spring-cloud-starter-sleuth:2.2.1.RELEASE'
+	implementation 'org.springframework.cloud:spring-cloud-starter-zipkin:2.2.1.RELEASE'
+
+	//Metrics
+	implementation 'org.springframework.boot:spring-boot-starter-actuator:2.2.4.RELEASE'
+	implementation 'io.micrometer:micrometer-registry-statsd:1.3.3'
+
+
+	testImplementation('org.springframework.boot:spring-boot-starter-test') {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
+}
+
+test {
+	useJUnitPlatform()
+}
