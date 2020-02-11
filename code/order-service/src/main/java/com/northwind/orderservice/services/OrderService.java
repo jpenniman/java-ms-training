@@ -64,12 +64,11 @@ public class OrderService {
             if (isNew) {
                 // OrderCreated event
                 event.setEventType("OrderPlaced");
-                rabbitTemplate.convertAndSend("order-service", "", entity);
             } else {
                 //OrderUpdated event
                 event.setEventType("OrderUpdated");
-                rabbitTemplate.convertAndSend("order-service", "", entity);
             }
+            rabbitTemplate.convertAndSend("order-service", "", objectMapper.writeValueAsString(event));
         } catch (JsonProcessingException e) {
             logger.debug("An error occurred serializing Order for event.", e);
         }

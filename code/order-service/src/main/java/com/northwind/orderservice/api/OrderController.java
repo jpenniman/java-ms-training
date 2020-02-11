@@ -46,6 +46,9 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<OrderModel> create(@RequestBody OrderModel model) {
+
+        // We can't have an order without items, so we'll check for them
+        // and return a 422.
         if (model.getItems() == null || model.getItems().size() == 0) {
             return ResponseEntity.unprocessableEntity().build();
         }
