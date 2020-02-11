@@ -7,6 +7,7 @@ import com.northwind.orderservice.domain.OrderStatus;
 import javax.persistence.Column;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @JsonSerialize
 public class OrderModel {
@@ -40,6 +41,17 @@ public class OrderModel {
     private OrderStatus status;
     @JsonProperty
     private long version;
+
+    @JsonProperty
+    private List<OrderItemModel> items;
+
+    public List<OrderItemModel> getItems() {
+        return items;
+    }
+
+    public void setItems(List<OrderItemModel> items) {
+        this.items = items;
+    }
 
     public long getOrderNo() {
         return orderNo;

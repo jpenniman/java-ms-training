@@ -1,5 +1,7 @@
 package com.northwind.orderservice.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -11,6 +13,7 @@ public class OrderItem {
 
     @EmbeddedId
     private OrderItemKey id;
+
     @Column(name="ProductName", length = 40)
     private String productName;
     @Column(name="QuantityPerUnit", length = 20)
@@ -24,8 +27,10 @@ public class OrderItem {
     @Version
     private long version;
 
+    @JsonIgnore
+    @MapsId("orderId")
     @ManyToOne(optional = false)
-    @JoinColumn(name = "OrderID", updatable = false, insertable = false)
+    @JoinColumn(name = "OrderID")
     private Order order;
 
     @Column(name="ObjectID")
@@ -34,6 +39,7 @@ public class OrderItem {
     protected OrderItem() {}
 
     public OrderItem(Order order, long productId) {
+        this.id = new OrderItemKey();
         this.order = order;
         this.id.setOrderId(order.getId());
         this.id.setProductId(productId);

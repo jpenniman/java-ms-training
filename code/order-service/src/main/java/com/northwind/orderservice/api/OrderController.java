@@ -46,6 +46,10 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<OrderModel> create(@RequestBody OrderModel model) {
+        if (model.getItems() == null || model.getItems().size() == 0) {
+            return ResponseEntity.unprocessableEntity().build();
+        }
+
         Order order = OrderMapper.toNewEntity(model);
 
         OrderModel savedOrder =

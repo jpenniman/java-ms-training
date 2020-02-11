@@ -36,6 +36,8 @@ public class OrderMapper {
         entity.setShipPostalCode(model.getShipPostalCode());
         entity.setShipRegion(model.getShipRegion());
         entity.setShipName(model.getShipName());
+
+        model.getItems().stream().forEach(i->entity.addItem(OrderItemMapper.newEntity(entity, i)));
         return entity;
     }
 

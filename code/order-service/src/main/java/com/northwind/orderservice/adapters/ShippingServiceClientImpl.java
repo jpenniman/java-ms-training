@@ -40,6 +40,6 @@ public class ShippingServiceClientImpl implements ShippingServiceClient {
     }
 
     private double getFreightAmountFallback(String country) {
-        throw new RuntimeException("Cannot calculate freight at this time.");
+        return 26.08;
     }
 }

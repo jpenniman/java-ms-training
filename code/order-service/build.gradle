@@ -22,7 +22,6 @@ dependencies {
 	implementation 'mysql:mysql-connector-java:8.0.19'
 
 	// Logging
-	implementation 'org.springframework.amqp:spring-rabbit:2.2.3.RELEASE'
 	implementation 'ch.qos.logback.contrib:logback-json-classic:0.1.5' //Logback JSON Formatter
 	implementation 'ch.qos.logback.contrib:logback-jackson:0.1.5' //Jackson implementation of Logback JSON Formatter
 
