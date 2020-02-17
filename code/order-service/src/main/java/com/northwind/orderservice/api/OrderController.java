@@ -4,11 +4,13 @@ import ch.qos.logback.core.pattern.util.RegularEscapeUtil;
 import com.northwind.orderservice.domain.Order;
 import com.northwind.orderservice.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -29,6 +31,36 @@ public class OrderController {
             @RequestParam(required = false)Optional<Integer> limit) {
 
         List<OrderModel> orders = service.getAll(offset.orElse(0), limit.orElse(10))
+                .stream().map(o->OrderMapper.toModel(o))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping(params = "customerId")
+    public ResponseEntity<List<OrderModel>> get(
+            @RequestParam long customerId,
+            @RequestParam(required = false)Optional<Integer> offset,
+            @RequestParam(required = false)Optional<Integer> limit) {
+
+        List<OrderModel> orders = service.getByCustomerId(customerId, offset.orElse(0), limit.orElse(10))
+                .stream().map(o->OrderMapper.toModel(o))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping(path = "/history")
+    public ResponseEntity<List<OrderModel>> get(
+            @RequestParam long customerId,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            @RequestParam Date startDate,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            @RequestParam Date endDate,
+            @RequestParam(required = false)Optional<Integer> offset,
+            @RequestParam(required = false)Optional<Integer> limit) {
+
+        List<OrderModel> orders = service.getByCustomerOrderHistory(customerId, startDate, endDate, offset.orElse(0), limit.orElse(10))
                 .stream().map(o->OrderMapper.toModel(o))
                 .collect(Collectors.toList());
 

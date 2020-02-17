@@ -8,8 +8,12 @@ import com.northwind.customerservice.infrastructure.TraceContext;
 import com.northwind.customerservice.repositories.CustomerRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import io.reactivex.Observable;
+import io.reactivex.subjects.PublishSubject;
+import io.reactivex.subjects.Subject;
 import org.apache.commons.logging.Log;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -17,9 +21,11 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class MySqlCustomerRepository implements CustomerRepository {
@@ -165,25 +171,39 @@ public class MySqlCustomerRepository implements CustomerRepository {
     }
 
     @Override
-    public List<Customer> getAll(int offSet, int limit) {
-        NamedParameterJdbcTemplate db = new NamedParameterJdbcTemplate(dataSource);
-        String sql = "SELECT `Customers`.`CustomerID`,\n" +
-                "    `Customers`.`CustomerNo`,\n" +
-                "    `Customers`.`CompanyName`,\n" +
-                "    `Customers`.`ContactName`,\n" +
-                "    `Customers`.`ContactTitle`,\n" +
-                "    `Customers`.`Phone`,\n" +
-                "    `Customers`.`Fax`,\n" +
-                "    `Customers`.`Version`,\n" +
-                "    `Customers`.`ObjectID`\n" +
-                "FROM `customers-db`.`Customers`\n" +
-                "LIMIT :offset, :limit";
+    public Observable<Customer> getAll(int offSet, int limit) {
+        Subject<Customer> customers = PublishSubject.create();
 
-        MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("offset", offSet)
-                .addValue("limit", limit);
+        Executors.newCachedThreadPool().submit(()->{
+            NamedParameterJdbcTemplate db = new NamedParameterJdbcTemplate(dataSource);
+            String sql = "SELECT `Customers`.`CustomerID`,\n" +
+                    "    `Customers`.`CustomerNo`,\n" +
+                    "    `Customers`.`CompanyName`,\n" +
+                    "    `Customers`.`ContactName`,\n" +
+                    "    `Customers`.`ContactTitle`,\n" +
+                    "    `Customers`.`Phone`,\n" +
+                    "    `Customers`.`Fax`,\n" +
+                    "    `Customers`.`Version`,\n" +
+                    "    `Customers`.`ObjectID`\n" +
+                    "FROM `customers-db`.`Customers`\n" +
+                    "LIMIT :offset, :limit";
 
-        List<Customer> customers = db.query(sql, params, customerRowMapper);
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("offset", offSet)
+                    .addValue("limit", limit);
+
+            //List<Customer> customers = db.query(sql, params, customerRowMapper);
+
+            CustomerRowMapper rowMapper = new CustomerRowMapper();
+            db.query(sql, params, new RowCallbackHandler() {
+                @Override
+                public void processRow(ResultSet rs) throws SQLException {
+                    customers.onNext(rowMapper.mapRow(rs, rs.getRow()));
+                }
+            });
+
+            customers.onComplete();
+        });
         return customers;
     }
 

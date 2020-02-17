@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class Application {
-    private static final int PORT = 8080;
+    private static final int PORT = 9081;
 
     public static void main(String[] args) throws Exception {
         // Declare the base path for the web app (not the server, that's different)

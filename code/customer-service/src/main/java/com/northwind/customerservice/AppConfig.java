@@ -1,16 +1,19 @@
 package com.northwind.customerservice;
 
-import com.northwind.customerservice.infrastructure.LoggerFactory;
-import com.northwind.customerservice.infrastructure.LoggerFactoryImpl;
-import com.northwind.customerservice.infrastructure.TraceContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.northwind.customerservice.infrastructure.*;
+import com.northwind.customerservice.proxies.OrderClientConfig;
+import com.northwind.customerservice.proxies.OrderServiceClient;
+import com.northwind.customerservice.proxies.impl.OrderServiceClientImpl;
 import com.northwind.customerservice.repositories.CustomerRepository;
 import com.northwind.customerservice.repositories.impl.AddressRowMapper;
 import com.northwind.customerservice.repositories.impl.CustomerRowMapper;
-import com.northwind.customerservice.repositories.impl.InMemoryCustomerRepository;
 import com.northwind.customerservice.repositories.impl.MySqlCustomerRepository;
 import com.northwind.customerservice.services.CustomerService;
+import com.northwind.customerservice.services.OrderHistoryService;
+//import com.northwind.framework.RestTemplateFactory;
+//import com.northwind.framework.RestTemplateFactoryImpl;
 import io.micrometer.core.instrument.Clock;
-import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
@@ -18,14 +21,18 @@ import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
 import io.micrometer.statsd.StatsdConfig;
-import io.micrometer.statsd.StatsdFlavor;
 import io.micrometer.statsd.StatsdMeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
+import org.springframework.format.support.DefaultFormattingConversionService;
+import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,7 +41,9 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.context.annotation.RequestScope;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import springfox.documentation.builders.PathSelectors;
@@ -48,14 +57,17 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.Duration;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 @Configuration
 @EnableWebMvc
 @EnableSwagger2
 @EnableWebSecurity
+@EnableAspectJAutoProxy
 @ComponentScan(basePackages = {"com.northwind.customerservice"})
 public class AppConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
     private Properties properties = new Properties();
@@ -68,6 +80,23 @@ public class AppConfig extends WebSecurityConfigurerAdapter implements WebMvcCon
         } catch (IOException ex) {
 
         }
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new TracingHandlerInterceptor());
+    }
+
+    @Override
+    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
+
+        MappingJackson2HttpMessageConverter jsonConverter =
+                new MappingJackson2HttpMessageConverter();
+        jsonConverter.setObjectMapper(objectMapper);
+
+        converters.add(jsonConverter);
     }
 
     // Create 2 users for demo
@@ -208,6 +237,43 @@ public class AppConfig extends WebSecurityConfigurerAdapter implements WebMvcCon
         return new TraceContext();
     }
 
+    @Bean
+    public RestTemplateFactory restTemplateFactory() {
+        return RestTemplateFactoryImpl.INSTANCE;
+    }
+
+    @Bean
+    public OrderClientConfig orderClientConfig() {
+        OrderClientConfig config = new OrderClientConfig();
+        config.setUrl(properties.getProperty("order-service.url"));
+        return config;
+    }
+
+    @Bean
+    public OrderServiceClient orderServiceClient(OrderClientConfig orderClientConfig, RestTemplateFactory restTemplateFactory) {
+        return new OrderServiceClientImpl(orderClientConfig, restTemplateFactory);
+    }
+    @Bean
+    public OrderHistoryService orderHistoryService(OrderServiceClient orderServiceClient, LoggerFactory loggerFactory) {
+            return new OrderHistoryService(orderServiceClient, loggerFactory);
+    }
+    @Bean
+    public FormattingConversionService conversionService() {
+        DefaultFormattingConversionService conversionService =
+                new DefaultFormattingConversionService(false);
+
+        DateTimeFormatterRegistrar registrar = new DateTimeFormatterRegistrar();
+        registrar.setDateFormatter(DateTimeFormatter.ISO_DATE);
+        registrar.setDateTimeFormatter(DateTimeFormatter.ISO_DATE_TIME);
+        registrar.registerFormatters(conversionService);
+
+        return conversionService;
+    }
+
+    @Bean
+    public LoggingAspect loggingAspect(){
+        return new LoggingAspect();
+    }
 
 }
 

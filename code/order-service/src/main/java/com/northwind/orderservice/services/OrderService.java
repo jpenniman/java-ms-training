@@ -12,8 +12,10 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,10 +46,29 @@ public class OrderService {
         return repository.findAll(PageRequest.of(page, limit)).toList();
     }
 
+    public List<Order> getByCustomerId(long customerId, int offset, int limit) {
+        int page = 1;
+        if (offset > 0)
+            page = (offset/limit) + 1;
+
+        return repository.findByCustomerId(customerId, PageRequest.of(page, limit)).toList();
+    }
+
+    public List<Order> getByCustomerOrderHistory(long customerId, Date startDate, Date endDate, int offset, int limit) {
+        int page = 1;
+        if (offset > 0)
+            page = (offset/limit) + 1;
+
+        List<Order> results =  repository.findByCustomerIdAndOrderDateBetween(customerId, startDate, endDate);
+
+        return results;
+    }
+
     public Optional<Order> get(long id) {
         return repository.findById(id);
     }
 
+    @Transactional
     public Order save(Order entity) {
         boolean isNew = false;
         if (entity.getId() == 0){

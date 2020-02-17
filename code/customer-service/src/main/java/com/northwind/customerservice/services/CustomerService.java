@@ -3,6 +3,7 @@ package com.northwind.customerservice.services;
 import com.northwind.customerservice.domain.Address;
 import com.northwind.customerservice.domain.Customer;
 import com.northwind.customerservice.repositories.CustomerRepository;
+import io.reactivex.Observable;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public class CustomerService {
         return repository.getById(id);
     }
 
-    public List<Customer> getAll(int offset, int limit) {
+    public Observable<Customer> getAll(int offset, int limit) {
         return repository.getAll(offset, limit);
     }
 

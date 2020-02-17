@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 @RestController
@@ -43,11 +45,32 @@ public class CustomerController {
             throw new IllegalArgumentException("Limit cannot be more than 50.");
         }
 
-        List<CustomerModel> customers = service.getAll(skip, take)
-                .stream().map(c->CustomerMapper.toModel(c))
-                .collect(Collectors.toList());
+//        List<CustomerModel> customers = service.getAll(skip, take)
+//                .stream().map(c->CustomerMapper.toModel(c))
+//                .collect(Collectors.toList());
 
-        return new ResponseEntity<>(customers, HttpStatus.OK);
+            final Object syncroot = new Object();
+            List<CustomerModel> customers = new ArrayList<>();
+            service.getAll(skip, take).subscribe(
+                    onNext->{
+                        customers.add(CustomerMapper.toModel(onNext));
+                    },
+                    onError->{},
+                    ()->{
+                        synchronized (syncroot) {
+                            syncroot.notify();
+                        }
+                    }
+            );
+
+            synchronized (syncroot) {
+                try {
+                    syncroot.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            return new ResponseEntity<>(customers, HttpStatus.OK);
     }
 
     @GetMapping(path = "/{id}", produces = "application/json")

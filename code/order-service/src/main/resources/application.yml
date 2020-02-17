@@ -1,0 +1,70 @@
+#server:
+#  port: 9082
+#  tomcat:
+#    mbeanregistry:
+#      enabled: true #Enable Micrometer metrics for Tomcat
+#logging:
+#  level:
+#    com:
+#      northwind: debug
+#spring:
+#  application:
+#    name: order-service
+#  rabbitmq:
+#    host: localhost
+#    username: admin
+#    password: password
+#  datasource:
+#    url: jdbc:mysql://localhost:3306/orders-db
+#    username: orders-user
+#    password: password
+#
+#  jpa:
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.MySQL57Dialect
+#        dialect.storage_engine: innodb
+#        naming:
+#          physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+#        format_sql: true
+#        generate_statistics: true
+#    show-sql: true
+#  zipkin:
+#    base-url: http://localhost:9411
+#  sleuth:
+#    sampler:
+#      percentage: 1.0
+#
+#management:
+#  metrics:
+#    export:
+#      statsd:
+#        host: localhost
+#        port: 8125
+#    web:
+#      server:
+#        request:
+#          autotime:
+#            enabled: true
+#
+#shipping-service:
+#  url: http://localhost:8083
+#
+#---
+#spring:
+#  profiles: local_dev
+#  rabbitmq:
+#    host: training-mq
+#  datasource:
+#    url: =jdbc:mysql://training-mysql:3306/orders-db
+#  zipkin:
+#    base-url: http://training-zipkin:9411/
+#server:
+#  port: 8080
+#management:
+#  metrics:
+#    export:
+#      statsd:
+#        host: training-splunk
+#shipping-service:
+#  url: http://shipping-service:8080

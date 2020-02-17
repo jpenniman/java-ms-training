@@ -13,10 +13,16 @@ application {
 
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
 dependencies {
+    //Northwind
+    //implementation 'com.northwind:framework:1.0'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.1'
+
+    //Tomcat
     implementation 'org.apache.tomcat.embed:tomcat-embed-jasper:9.0.30'
     implementation 'org.apache.tomcat.embed:tomcat-embed-core:9.0.30'
     implementation 'org.apache.tomcat.embed:tomcat-embed-logging-juli:9.0.0.M6'
@@ -45,6 +51,11 @@ dependencies {
     // Security
     implementation 'org.springframework.security:spring-security-web:5.2.1.RELEASE'
     implementation 'org.springframework.security:spring-security-config:5.2.1.RELEASE'
+
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.17'
+
+    // Timeouts/Circuit Breakers/BulkHeads
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix:2.2.1.RELEASE'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.5.2'
 }

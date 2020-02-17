@@ -1,8 +1,10 @@
 package com.northwind.orderservice.domain;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,10 +25,15 @@ public class Order {
     private String customerNo;
     @Column(name = "CustomerName", length = 50)
     private String companyName;
+
+    @Temporal(TemporalType.DATE)
     @Column(name = "OrderDate")
     private Date orderDate;
+
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "RequiredDate")
     private Date requiredDate;
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "ShippedDate")
     private Date shippedDate;
     @Column(name = "Freight")
