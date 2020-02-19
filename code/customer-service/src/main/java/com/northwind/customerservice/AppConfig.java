@@ -2,9 +2,9 @@ package com.northwind.customerservice;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.northwind.customerservice.infrastructure.*;
-import com.northwind.customerservice.proxies.OrderClientConfig;
-import com.northwind.customerservice.proxies.OrderServiceClient;
-import com.northwind.customerservice.proxies.impl.OrderServiceClientImpl;
+import com.northwind.customerservice.adapters.orderservice.OrderClientConfig;
+import com.northwind.customerservice.adapters.orderservice.OrderServiceClient;
+import com.northwind.customerservice.adapters.orderservice.impl.OrderServiceClientImpl;
 import com.northwind.customerservice.repositories.CustomerRepository;
 import com.northwind.customerservice.repositories.impl.AddressRowMapper;
 import com.northwind.customerservice.repositories.impl.CustomerRowMapper;
@@ -22,7 +22,6 @@ import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
 import io.micrometer.statsd.StatsdConfig;
 import io.micrometer.statsd.StatsdMeterRegistry;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -41,7 +40,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.context.annotation.RequestScope;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;

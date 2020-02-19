@@ -1,0 +1,12 @@
+version: '3'
+networks:
+  default:
+    external:
+      name: localdev_default
+services:
+  customer:
+    image: customer-service
+    container_name: customer-service
+    hostname: customer-service
+    ports:
+      - 127.0.0.1:8081:8080
